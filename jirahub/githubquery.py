@@ -78,3 +78,12 @@ class GithubQuery(object):
         """
         self.issue.edit(state=status)
 
+    def change_labels(self, labels):
+        """Change the labels in an issue.
+
+        Parameters
+        ----------
+        labels : list
+            entire list of labels that should be on the issue
+        """
+        self.issue.edit(labels=labels)
