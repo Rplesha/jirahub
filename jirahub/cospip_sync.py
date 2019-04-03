@@ -135,14 +135,40 @@ def jira_to_github(rosetta_stone, gitrepo, g, j):
 
 #-------------------------------------------------------------------------------
 
-def github_to_jira(rosetta_stone, gitrepo, g, j):
+def github_to_jira(rosetta_stone, excluded_labels, gitrepo, g, j):
 
     issues = open(rosetta_stone).readlines()
 
     # Add any new issues determine the issues that are open
     # github issue numbers are ints but issues is read in as a string
     github_issues = [int(x.split()[1]) for x in issues]
+
+    # searching for the appropriate issues
+    skip_labels = [g.repo.get_label(label_name) for label_name in excluded_labels]
+
+    # grab all open issues. This includes pull requests right now b/c not sure how to exclude them
+    filtered_issues = []
+
     for i in g.repo.get_issues(state="open"):
+        add_issue = True
+        # We want to ignore pull requests
+        if i.pull_request != None:
+            continue
+
+        if len(i.labels) == 0:
+            print(f'{i} has no labels. Add one to it before it will be made into a JIRA ticket.')
+            add_issue = False
+
+        # loop through the labels
+        for label in i.labels:
+            if label in skip_labels:
+                add_issue = False
+                break
+        if add_issue:
+            filtered_issues.append(i)
+
+    # now we can deal with making a JIRA project for the correct issues
+    for i in filtered_issues:
         # check those issues against the list
         if i.number not in github_issues:
             print(f'{i.number}: "{i.title}" not in JIRA')
@@ -166,10 +192,11 @@ def github_to_jira(rosetta_stone, gitrepo, g, j):
                 fout.write(f'{jid.key} {i.number}\n')
 
             # add the jira label to the github issue
-            i.add_to_labels('jira')
+            # i.add_to_labels('jira') # I have to have admin rights, which I don't
             # add a github label to the jira issue
             added_labels = [jid.fields.labels.append(label) for label in [u'github', u'CalCOS']]
             jid.update(fields={"labels": jid.fields.labels})
+
 
 #-------------------------------------------------------------------------------
 
@@ -202,7 +229,8 @@ if __name__=='__main__':
     jira_to_github(args.issue_list, gitrepo, g, j)
 
     # creating issues on jira that are unique on github and writing them out to issue_list
-    github_to_jira(args.issue_list, gitrepo, g, j)
+    excluded_labels = ["testing", "documentation"]
+    github_to_jira(args.issue_list, excluded_labels, gitrepo, g, j)
 
     # process for syning issues
     # reading the file again to open all files, including the ones that were just
