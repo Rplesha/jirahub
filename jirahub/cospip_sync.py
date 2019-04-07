@@ -51,10 +51,11 @@ class COS_Sync(IssueSync):
         jira_comments_body = [j.body.strip() for j in self.jira.issue.fields.comment.comments]
 
         for g in github_comments:
-            if g.body not in jira_comments_body:
+            # Sometimes there are extra spaces in the comments, so the .strip() fixes that
+            if g.body.strip() not in jira_comments_body:
                 # we don't want to add the same comment over and over again
                 #   b/c we are only syncing it one way
-                self.jira.add_comment(f'{g.body}')
+                self.jira.add_comment(f'{g.body.strip()}')
 
     def status(self):
         if 'status' not in self.differences:
