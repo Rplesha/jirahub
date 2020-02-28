@@ -28,13 +28,19 @@ def cos_pipeline_cosbot(issues):
         # I only want to sync the github comments to JIRA b/c of the nature of internal-only comments
         sync.comments()
 
-        for username in ['rplesha', 'efrazer']:
-            all_watchers = [watcher.name for watcher in j.jira.watchers(jid).watchers]
-            if username not in all_watchers:
-                j.jira.add_watcher(jid, username)
-                print('Adding {} to watch:'.format(username), jid)
-
     return
+
+#-------------------------------------------------------------------------------
+
+def check_jira_watchers(j):
+
+    jira_search = 'Project="COSPIP"'
+    for i in j.jira.search_issues(jira_search):
+        for username in ['rplesha', 'efrazer']:
+            all_watchers = [watcher.name for watcher in j.jira.watchers(i).watchers]
+            if username not in all_watchers:
+                j.jira.add_watcher(i, username)
+                print('Adding {} to watch:'.format(username), i)
 
 #-------------------------------------------------------------------------------
 
@@ -67,19 +73,28 @@ class COS_Sync(IssueSync):
 
             # If the github status is closed, move the jira issue to resolved
             if github_status == 'closed':
-                 if jira_status not in ['Done', 'Documentation', 'Ready for Delivery']:
-                     logging.info('moving {} to Done'.format(self.jira_id))
-                     self.jira.change_status('Done')
+                 if jira_status not in ['Done', 'Documentation']:
+                     print(jira_status)
+                     try:
+                         logging.info('moving {} to Done'.format(self.jira_id))
+                         self.jira.change_status('Done')
+                     except:
+                         logging.info('moving {} to Documentation:'.format(self.jira_id))
+                         self.jira.change_status('Documentation')
+                 if jira_status == 'Documentation':
+                     # The ticket is done on GitHub, so documentation should be done. Send a reminder
+                     logging.info('Finish documenting {}'.format(self.jira_id))
 
             # If the jira issue is resolved or done, close the github issue
-            if jira_status in ['Done', 'Documentation', 'Ready for Delivery']:
+            if jira_status in ['Done']:
                  if github_status is not 'closed':
                       self.github.change_status('closed')
 
             # if the jira issue is being tested, github should have a label to
             #   reflect that it's being developed:
             if jira_status in ['Selected for Development', 'Implementation',
-                               'In Testing', 'Pending Merge to Test', 'Validation']:
+                               'In Testing', 'Pending Merge to Test', 'Validation',
+                               'Ready for Delivery', 'Documentation']:
                  self.github.change_labels([jira_status])
 
 #-------------------------------------------------------------------------------
@@ -133,8 +148,8 @@ def jira_to_github(rosetta_stone, gitrepo, g, j):
             g.issue = gid.number
             g.issue.add_to_labels('jira')
             # add a github label to the jira issue
-            added_labels = [issue.fields.labels.append(label) for label in [u'github']]
-            j.issue.update(fields={"labels": issue.fields.labels})
+            added_labels = [j.issue.fields.labels.append(label) for label in [u'github']]
+            j.issue.update(fields={"labels": j.issue.fields.labels})
 
 #-------------------------------------------------------------------------------
 
@@ -240,3 +255,6 @@ if __name__=='__main__':
     #   added in `jira_to_github` and `github_to_jira`
     #   Therefore this line needs to be run last!!
     cos_pipeline_cosbot(issues = open(args.issue_list).readlines())
+
+    # Checking that pipeline lead/deputy are watching all issues
+    check_jira_watchers(j)
