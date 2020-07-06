@@ -121,8 +121,9 @@ def jira_to_github(rosetta_stone, gitrepo, g, j):
     # Add any new issues determine the issues that are open
     jira_issues = [x.split()[0] for x in issues]
     jira_search = 'Project="COSPIP" AND labels="CalCOS" AND \
-                  (status != "OPEN" AND status != "BACKLOG" AND status != "DONE")'
-
+                  (status != "OPEN" AND status != "BACKLOG" AND status != "DONE") \
+                  AND Type != "sub-task" AND fixversion is not EMPTY'
+    print(jira_search)
     for i in j.jira.search_issues(jira_search):
         # check those issues against the list
         if i.key not in jira_issues:
