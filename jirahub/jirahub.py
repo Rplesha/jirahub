@@ -104,10 +104,10 @@ def how_issues_differ(github, jira, github_id, jira_id):
     missing_github_comments = list(filter(lambda x: x not in github_comments, jira_comments))
     differences['comments'] = {'github': missing_github_comments, 'jira': missing_jira_comments}
 
-    if differences:
-        logging.info('The following differences were found:')
-        for k in differences:
-            logging.info('  Difference in {}: {}'.format(k, differences[k]))
+    # if differences:
+    #     logging.info('The following differences were found:')
+    #     for k in differences:
+    #         logging.info('  Difference in {}: {}'.format(k, differences[k]))
 
     return differences
 
@@ -173,4 +173,3 @@ class IssueSync(object):
         """Change the tickets based on the status of the tickets
         """
         return
-
