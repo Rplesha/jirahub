@@ -73,7 +73,7 @@ class COS_Sync(IssueSync):
 
             # If the github status is closed, move the jira issue to resolved
             if github_status == 'closed':
-                 if jira_status not in ['Done', 'Documentation']:
+                 if jira_status not in ['Done', 'Documentation', 'Rejected']:
                      print(jira_status)
                      try:
                          logging.info('moving {} to Done'.format(self.jira_id))
@@ -86,7 +86,7 @@ class COS_Sync(IssueSync):
                      logging.info('Finish documenting {}'.format(self.jira_id))
 
             # If the jira issue is resolved or done, close the github issue
-            if jira_status in ['Done']:
+            if jira_status in ['Done', 'Rejected']:
                  if github_status is not 'closed':
                       self.github.change_status('closed')
 
