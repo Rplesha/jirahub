@@ -122,7 +122,7 @@ def jira_to_github(rosetta_stone, gitrepo, g, j):
     jira_issues = [x.split()[0] for x in issues]
     jira_search = 'Project="COSPIP" AND labels="CalCOS" AND \
                   (status != "OPEN" AND status != "BACKLOG" AND status != "DONE") \
-                  AND Type != "sub-task" AND fixversion is not EMPTY'
+                  AND Type != "sub-task" AND Type != "Documentation" AND fixversion is not EMPTY'
     print(jira_search)
     for i in j.jira.search_issues(jira_search):
         # check those issues against the list
@@ -248,7 +248,7 @@ if __name__=='__main__':
     jira_to_github(args.issue_list, gitrepo, g, j)
 
     # creating issues on jira that are unique on github and writing them out to issue_list
-    excluded_labels = ["testing", "documentation"]
+    excluded_labels = ["testing", "Documentation", "question", "duplicate", "help wanted"]
     github_to_jira(args.issue_list, excluded_labels, gitrepo, g, j)
 
     # process for syning issues
