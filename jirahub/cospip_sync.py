@@ -124,7 +124,7 @@ def jira_to_github(rosetta_stone, gitrepo, g, j):
                   (status != "OPEN" AND status != "BACKLOG" AND status != "DONE") \
                   AND Type != "sub-task" AND Type != "Documentation" AND fixversion is not EMPTY'
     print(jira_search)
-    for i in j.jira.search_issues(jira_search):
+    for i in j.jira.search_issues(jira_search, maxResults=1000):
         # check those issues against the list
         if i.key not in jira_issues:
             j.issue = i.key
