@@ -35,8 +35,8 @@ def cos_pipeline_cosbot(issues):
 def check_jira_watchers(j):
 
     jira_search = 'Project="COSPIP"'
-    for i in j.jira.search_issues(jira_search):
-        for username in ['rplesha', 'efrazer']:
+    for i in j.jira.search_issues(jira_search, maxResults=1000):
+        for username in ['rplesha', 'lmiller']:
             all_watchers = [watcher.name for watcher in j.jira.watchers(i).watchers]
             if username not in all_watchers:
                 j.jira.add_watcher(i, username)
